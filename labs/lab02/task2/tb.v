@@ -1,27 +1,38 @@
-// tb.v
-// Starter testbench template -- YOU complete this file.
+`timescale 1ns/1ps
 
 module tb;
+    parameter TEST_WIDTH = 8;
+    parameter TEST_DEPTH = 8;
 
-  // TODO: declare the inputs and outputs
+    reg [$clog2(TEST_DEPTH)-1:0] t_sel;
+    wire [TEST_WIDTH-1:0] t_dout;
 
-  // TODO: instantiate DUT here
+    lut #(
+        .WIDTH(TEST_WIDTH),
+        .DEPTH(TEST_DEPTH)
+    ) U1 (
+        .sel(t_sel),
+        .dout(t_dout)
+    );
 
-  // Waveform dump configuration (DO NOT CHANGE)
-  string vcd_file;
-  initial begin
-    if ($value$plusargs("vcd=%s", vcd_file)) begin
-      $dumpfile(vcd_file);
-      $dumpvars(0, DUT);
+    integer i;
+    integer errors = 0;
+
+    initial begin
+        for (i = 0; i < TEST_DEPTH; i = i + 1) begin
+            t_sel = i;
+            #5;
+            if (t_dout !== (i * i)) begin
+                $display("FAIL at address %0d: expected %0d, got %0d", i, (i * i), t_dout);
+                errors = errors + 1;
+            end
+        end
+
+        if (errors == 0)
+            $display("PASS: All %0d memory locations verified correctly.", TEST_DEPTH);
+        else
+            $display("FAIL: %0d errors found.", errors);
+            
+        $finish;
     end
-  end
-
-  initial begin
-    // TODO: apply different input combinations
-
-  end
-
-  initial
-    $monitor($time, " I0=%b I1=%b S=%b | Y=%b", t_i0, t_i1, t_s, t_y); // change as required
-
 endmodule
